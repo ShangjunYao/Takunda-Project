@@ -1,0 +1,130 @@
+---
+title: "Interactive Visualizations for Takunda"
+author: "Shangjun Yao"
+date: "2025-04-23"
+output: html_document
+---
+
+## 1. Introduction & Dataset Description
+
+This project investigates how social capital influences household coping strategies (CSI) and livelihood coping strategies (LCSI) in Zimbabwe within the Takunda program over a year in February and Augest 2024 (Round 3 and Round 4). The dataset includes household-level indicators collected through structured surveys on food security, coping strategies, and social capital. 
+
+Study details:
+Sample size: Round 3 (n = 483), Round 4 (n = 280)
+Study population: Households in food-insecure regions of Zimbabwe
+Data collection: Structured in-person surveys
+
+Key variables include:
+- **Social Capital Index (SCI):** Measures bonding and bridging social capital based on assistance within and outside the community.
+- **Coping Strategy Index (CSI):** Measures short-term food insecurity coping mechanisms.
+- **Livelihood Coping Strategy Index (LCSI):** Captures long-term financial and livelihood-related coping strategies.
+
+
+## 2. Description of Planned Interactive HTML Widgets
+
+### **Widget 1: Social Capital vs. Coping Strategies**
+- **X-axis:** Social Capital Index (0–100)
+- **Y-axis:** CSI and LCSI (separate boxplots)
+- **Color:** Round 3 vs. Round 4
+- **Interactivity:**
+  - Hover tooltips displaying SCI, CSI/LCSI, and Round
+  - Legend toggles to isolate Round 3 or Round 4
+  - Zooming and panning enabled for deeper exploration
+
+**Key Takeaways:**
+- Households with higher SCI had slightly lower CSI.
+- This trend appeared in both rounds, with Round 4 showing lower CSI overall, suggesting increased food security over time.
+
+### **Widget 2: Household Coping Strategies Distribution**
+- **X-axis:** Coping Strategy Type (CSI and LCSI)
+- **Y-axis:** Index Score (0–100)
+- **Color:** Round 3 vs. Round 4
+- **Interactivity:**
+  - Hover tooltips show round, strategy type, and score
+  
+**Key Takeaways:**
+- CSI and LCSI scores were lower in Round 4, may indicating reduced coping behavior.
+
+- LCSI dropped more noticeably, suggesting greater improvement in long-term resilience.
+
+## Load Libraries
+
+```{r setup, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(DT)
+library(tidyr)
+
+```
+
+## Load Data
+
+```{r, echo= FALSE}
+# Load Takunda Round 3 and Round 4 data
+Round3_updated_data <- read.csv("/Users/shangjunyao/Desktop/Capstone/Takunda data/Round3_updated_data.csv")
+Round4_updated_data <- read.csv("/Users/shangjunyao/Desktop/Capstone/Takunda data/Round4_updated_data.csv")
+```
+
+
+### **Widget 1: Social Capital vs. Coping Strategies**
+```{r widget1, warning=FALSE, message=FALSE, echo= FALSE}
+p1 <- ggplot(Round3_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 3')) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_point(data = Round4_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 4'), alpha = 0.6) +
+  geom_smooth(data = Round4_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 4'), method = 'lm', se = FALSE) +
+  labs(title = "Social Capital vs. Coping Strategy Index (CSI)",
+       x = "Social Capital Index (0–100)",
+       y = "Coping Strategy Index (CSI)") +
+  theme_minimal()
+
+ggplotly(p1)
+```
+
+### Scatter plot conclusion:
+- There is a slight negative correlation between Social Capital Index (SCI) and CSI, meaning that households with higher social capital tend to use fewer coping strategies.
+- Comparison Between Rounds: The trend is consistent across Round 3 and Round 4, but CSI scores appear slightly lower in Round 4, further reinforcing the idea that households relied less on food-related coping strategies over time.
+- This supports the hypothesis that social capital plays a role in reducing the need for negative coping strategies, as stronger social networks may provide households with alternative means to deal with food insecurity.
+
+### **Widget 2: Household Coping Strategies Distribution**
+```{r widget2, warning=FALSE, message=FALSE, echo= FALSE}
+
+# Combine Round 3 and Round 4
+combined_data <- bind_rows(
+  Round3_updated_data %>% mutate(Round = "Round 3"),
+  Round4_updated_data %>% mutate(Round = "Round 4")
+)
+
+# Ensure the data is in long format
+long_data <- combined_data %>%
+  pivot_longer(cols = c(CSI, LCSI_Index), names_to = "Coping_Strategy", values_to = "Index_Score")
+
+# Create the boxplot
+boxplot_widget <- ggplot(long_data, aes(x = Coping_Strategy, y = Index_Score, fill = as.factor(Round))) +
+  geom_boxplot(outlier.shape = 21, outlier.fill = "black", outlier.size = 2, alpha = 0.6) +
+  labs(title = "Household Coping Strategies Distribution",
+       x = "Coping Strategy Type",
+       y = "Index Score",
+       fill = "Round") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Round 3" = "#E69F00", "Round 4" = "#56B4E9"))
+
+# Convert to interactive plot
+boxplot_widget_interactive <- ggplotly(boxplot_widget, tooltip = c("y", "x", "fill"))
+boxplot_widget_interactive
+
+```
+
+
+
+### BoxPlot Inclusion:
+- Households in Round 4 had lower CSI scores compared to Round 3, indicating reduced reliance on short-term food-related coping strategies (e.g., reducing portion sizes, skipping meals).
+- There is a significant decrease in LCSI in Round 4, suggesting households relied less on extreme financial and asset-based coping mechanisms like selling assets or borrowing food on credit.
+- This trend suggests households became more food secure over time, possibly due to improved access to resources and support networks.
+### Overall Conclusion
+- Households in Round 4 demonstrated improved food security, as indicated by lower CSI and LCSI scores.
+- Higher Social Capital was associated with reduced reliance on coping strategies, reinforcing its importance in food security resilience.
+- The Takunda program’s interventions may have contributed to strengthening social capital, ultimately helping to reduce household vulnerability to food insecurity.
+
+
