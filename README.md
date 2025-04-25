@@ -1,5 +1,5 @@
 # Takunda-Project: Social Capital and Coping Strategies
-##Overview
+## Overview
 This interactive dashboard examines how social capital affects household food insecurity coping strategies in Zimbabwe, using survey data from the Takunda Program (Round 3 — Feb 2024 and Round 4 — Aug 2024). 
 
 ## Features
