@@ -1,0 +1,100 @@
+---
+title: "Interactive Visualizations for Takunda"
+author: "Shangjun Yao"
+date: "2025-04-23"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo= FALSE}
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(DT)
+library(tidyr)
+library(flexdashboard)
+```
+
+
+# Dataset description
+## Tab A
+### Dataset Description {.tabset}
+
+#### Overview
+This project investigates how social capital influences household coping strategies (CSI) and livelihood coping strategies (LCSI) in Zimbabwe within the Takunda program over a year in February and August 2024 (Round 3 and Round 4).
+
+#### Data Details
+- **Sample size**: Round 3 (n = 483), Round 4 (n = 280)  
+- **Study population**: Households in food-insecure regions of Zimbabwe  
+- **Collection method**: Structured in-person surveys  
+- **Confidentiality**: Dataset is private and provided for internal academic analysis only
+
+#### Key Variables
+- **Social Capital Index (SCI):** Bonding and bridging capital from internal/external help
+- **Coping Strategy Index (CSI):** Short-term food insecurity coping behavior
+- **Livelihood Coping Strategy Index (LCSI):** Long-term livelihood and asset coping behavior
+
+#### Real-World Relevance
+This dashboard illustrates the positive impact of social capital and resilience-building interventions on household food security. The findings can inform future program strategies for vulnerable communities in Zimbabwe and beyond.
+
+[GitHub Repository](https://github.com/ShangjunYao/Takunda-Project)
+
+# Interactive visualizations
+## Tab B
+## Social Capital vs. Coping Strategy Index {.tabset}
+
+```{r, echo= FALSE}
+Round3_updated_data <- read.csv("/Users/shangjunyao/Desktop/Capstone/Takunda data/Round3_updated_data.csv")
+Round4_updated_data <- read.csv("/Users/shangjunyao/Desktop/Capstone/Takunda data/Round4_updated_data.csv")
+```
+
+```{r widget1, warning=FALSE, message=FALSE, echo= FALSE}
+p1 <- ggplot(Round3_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 3')) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_point(data = Round4_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 4'), alpha = 0.6) +
+  geom_smooth(data = Round4_updated_data, aes(x = Social_Capital_Index, y = CSI, color = 'Round 4'), method = 'lm', se = FALSE) +
+  labs(title = "Social Capital vs. Coping Strategy Index (CSI)",
+       x = "Social Capital Index (0–100)",
+       y = "Coping Strategy Index (CSI)",
+       color = "Survey Round") +
+  theme_minimal()
+
+ggplotly(p1, tooltip = c("x", "y", "color"))
+```
+
+#### Key Takeaways
+- Households with higher social capital tend to use fewer short-term coping strategies.
+- This pattern is visible in both survey rounds, with Round 4 showing overall lower Coping strageties scores, suggesting improved food security over time.
+
+## Household Coping Strategies Distribution {.tabset}
+
+```{r widget2, warning=FALSE, message=FALSE, echo= FALSE}
+combined_data <- bind_rows(
+  Round3_updated_data %>% mutate(Round = "Round 3"),
+  Round4_updated_data %>% mutate(Round = "Round 4")
+)
+
+long_data <- combined_data %>%
+  pivot_longer(cols = c(CSI, LCSI), names_to = "Coping_Strategy", values_to = "Index_Score")
+
+boxplot_widget <- ggplot(long_data, aes(x = Coping_Strategy, y = Index_Score, fill = Round)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.6) +
+  labs(title = "Household Coping Strategies Distribution",
+       x = "Coping Strategy Type",
+       y = "Index Score",
+       fill = "Survey Round") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Round 3" = "#E69F00", "Round 4" = "#56B4E9"))
+
+
+plotly::ggplotly(boxplot_widget, tooltip = c("x", "y", "fill"))
+```
+
+#### Key Takeaways
+- Both Coping Strategy index and Livelihood Coping Strategy index scores were lower in Round 4, suggesting reduced use of coping strategies.
+- The decrease in Livelihood Coping Strategy index was more pronounced, indicating potential long-term improvement in household resilience.
+
+
